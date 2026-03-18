@@ -851,6 +851,192 @@ $(function(){
       updateAllParts();
     }
   }
+  
+  // Função para carregar uma profecia específica do Prophetiarium Xicatunense
+  window.loadProphetia = function(number) {
+    // Determinar o nome do arquivo GABC
+    var fileName = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + number + '_corrected.gabc';
+    
+    // Carregar o conteúdo do arquivo GABC
+    $.get(fileName)
+      .done(function(data) {
+        // Processar o conteúdo GABC e extrair informações
+        var lines = data.split('\n');
+        var header = {};
+        var body = [];
+        var inHeader = true;
+        
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (line === '%%') {
+            inHeader = false;
+            continue;
+          }
+          
+          if (inHeader && line.includes(':') && line.includes(';')) {
+            // Processar linha de cabeçalho
+            var colonIndex = line.indexOf(':');
+            var semicolonIndex = line.lastIndexOf(';');
+            if (colonIndex > 0 && semicolonIndex > colonIndex) {
+              var key = line.substring(0, colonIndex).trim();
+              var value = line.substring(colonIndex + 1, semicolonIndex).trim();
+              header[key] = value;
+            }
+          } else if (!inHeader) {
+            body.push(line);
+          }
+        }
+        
+        // Atualizar interface com a profecia
+        updateProphetiaDisplay(number, header, body.join('\n'));
+      })
+      .fail(function() {
+        // Caso o arquivo com o sufixo _corrected.gabc não exista, tentar sem o sufixo
+        var fileNameOriginal = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + number + '.gabc';
+        $.get(fileNameOriginal)
+          .done(function(data) {
+            // Processar o conteúdo GABC e extrair informações
+            var lines = data.split('\n');
+            var header = {};
+            var body = [];
+            var inHeader = true;
+            
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (line === '%%') {
+                inHeader = false;
+                continue;
+              }
+              
+              if (inHeader && line.includes(':') && line.includes(';')) {
+                // Processar linha de cabeçalho
+                var colonIndex = line.indexOf(':');
+                var semicolonIndex = line.lastIndexOf(';');
+                if (colonIndex > 0 && semicolonIndex > colonIndex) {
+                  var key = line.substring(0, colonIndex).trim();
+                  var value = line.substring(colonIndex + 1, semicolonIndex).trim();
+                  header[key] = value;
+                }
+              } else if (!inHeader) {
+                body.push(line);
+              }
+            }
+            
+            // Atualizar interface com a profecia
+            updateProphetiaDisplay(number, header, body.join('\n'));
+          })
+          .fail(function() {
+            alert('Erro ao carregar Prophetia ' + number + ': Arquivo não encontrado.');
+          });
+      });
+  };
+  
+  // Função para atualizar a exibição com a profecia carregada
+  function updateProphetiaDisplay(number, header, body) {
+    // Criar ou atualizar um elemento para exibir a profecia
+    var prophetiaId = 'prophetia-' + number;
+    var $prophetiaDiv = $('#' + prophetiaId);
+    
+    if ($prophetiaDiv.length === 0) {
+      // Criar novo elemento para a profecia
+      $prophetiaDiv = $('<div>', {
+        id: prophetiaId,
+        'class': 'prophetia-display'
+      });
+      
+      // Adicionar título
+      var title = header.name || 'Prophetia ' + number;
+      $prophetiaDiv.append($('<h3>', { text: title }));
+      
+      // Adicionar informações do cabeçalho
+      var infoText = 'Modo: ' + (header.mode || 'Desconhecido') + 
+                     ', Parte: ' + (header['office-part'] || 'Desconhecido') +
+                     ', Referência: ' + (header.commentary || 'Desconhecido');
+      $prophetiaDiv.append($('<p>', { text: infoText, 'class': 'prophetia-info' }));
+      
+      // Adicionar conteúdo GABC
+      $prophetiaDiv.append($('<pre>', { 
+        text: body, 
+        'class': 'prophetia-content' 
+      }));
+      
+      // Adicionar botão para renderizar a melodia
+      var $renderButton = $('<button>', {
+        text: 'Renderizar Melodia',
+        'class': 'btn btn-primary render-btn',
+        click: function() {
+          renderGabcToChant(body, 'prophetia-' + number + '-chant');
+        }
+      });
+      $prophetiaDiv.append($renderButton);
+      
+      // Adicionar contêiner para a renderização da melodia
+      $prophetiaDiv.append($('<div>', {
+        id: 'prophetia-' + number + '-chant',
+        'class': 'chant-render-container'
+      }));
+      
+      // Adicionar ao final da página
+      $('body').append($prophetiaDiv);
+    } else {
+      // Atualizar conteúdo existente
+      $prophetiaDiv.find('h3').text(header.name || 'Prophetia ' + number);
+      var infoText = 'Modo: ' + (header.mode || 'Desconhecido') + 
+                     ', Parte: ' + (header['office-part'] || 'Desconhecido') +
+                     ', Referência: ' + (header.commentary || 'Desconhecido');
+      $prophetiaDiv.find('.prophetia-info').text(infoText);
+      $prophetiaDiv.find('.prophetia-content').text(body);
+    }
+    
+    // Mostrar mensagem de sucesso
+    alert('Prophetia ' + number + ' carregada com sucesso!');
+  }
+  
+  // Função para renderizar o conteúdo GABC como notação musical
+  function renderGabcToChant(gabcContent, containerId) {
+    try {
+      // Criar contexto para a renderização
+      var chantContainer = $('#' + containerId)[0];
+      if (!chantContainer) {
+        console.error('Contêiner de renderização não encontrado: ' + containerId);
+        return;
+      }
+      
+      // Limpar conteúdo anterior
+      $(chantContainer).empty();
+      
+      // Extrair cabeçalho do GABC
+      var headerEndIndex = gabcContent.indexOf('%%');
+      var headerStr = headerEndIndex !== -1 ? gabcContent.substring(0, headerEndIndex) : '';
+      var gabcBody = headerEndIndex !== -1 ? gabcContent.substring(headerEndIndex + 2) : gabcContent;
+      
+      // Criar objeto de contexto para a melodia
+      var chantCtx = makeExsurgeChantContext();
+      chantCtx.width = 600; // Definir largura padrão
+      
+      // Atualizar o contêiner com o conteúdo GABC
+      sel.custom1 = sel.custom1 || {};
+      makeChantContextForSel(sel.custom1);
+      sel.custom1.gabc = headerStr + '%%\n' + gabcBody;
+      sel.custom1.activeGabc = gabcBody;
+      sel.custom1.text = 'Prophetia';
+      sel.custom1.style = 'full';
+      
+      // Atualizar a exibição
+      updateExsurge('custom1', null, true);
+      
+      // Obter o preview do conteúdo custom1 e mover para o contêiner desejado
+      var $sourcePreview = $('#custom1-preview');
+      if ($sourcePreview.length > 0) {
+        $sourcePreview.appendTo('#' + containerId);
+      } else {
+        $(chantContainer).text('Não foi possível renderizar a melodia.');
+      }
+    } catch (e) {
+      console.error('Erro ao renderizar GABC:', e);
+      $('#' + containerId).text('Erro ao renderizar a melodia: ' + e.message);
+    }
+  }
   function updateReadings(readings, $lectiones) {
     $lectiones.find('.lectio-reference').text(function(i) { return readings[i]; });
     readings.forEach(function(reading,i) {

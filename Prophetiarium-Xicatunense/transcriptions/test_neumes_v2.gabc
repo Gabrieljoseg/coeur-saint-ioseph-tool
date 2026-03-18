@@ -1,0 +1,86 @@
+name: Teste de Neumas Avançado;
+office-part: Exemplo;
+mode: 1;
+book: Exemplo de notação gregoriana;
+transcriber: Subagente GABC;
+commentary: Arquivo de teste com diversos tipos de neumas segundo as regras do Gregorio;
+
+%%
+(c3) 
+(*b*) Escala completa em Do: 
+Do(e) Ré(f) Mi(g) Fá(a) Sol(b) Lá(c) Si(d) Do(e') Ré(f') Mi(g') Fá(a') Sol(b').(::)
+
+(*b*) 
+(*b*) Neumas Simples: (::)
+(*b*) Plica: Do(_e) Ré(_f) Mi(_g).(::)
+(*b*) Acento: Do(^e) Ré(^f) Mi(^g).(::)
+(*b*) Virga: Do(|e) Ré(|f) Mi(|g).(::)
+
+(*b*) 
+(*b*) Neumas Binários: (::)
+(*b*) Pes: Do(e) Mi(g).(::)
+(*b*) Clivis: Sol(b) Do(e).(::)
+(*b*) Podatus: Do(e) Sol(b).(::)
+(*b*) Climacus: Sol(b) Do(e) Do(e).(::)
+(*b*) Torculus: Sol(b) Do(e) Do(e).(::)
+
+(*b*) 
+(*b*) Neumas Ternários: (::)
+(*b*) Porrectus: Do(e) Do(e) Sol(b).(::)
+(*b*) Scandicus: Do(e) Ré(f) Mi(g).(::)
+(*b*) Clivis reversus: Do(e) Ré(f) Do(e).(::)
+(*b*) Torculus resupinus: Do(e) Sol(b) Ré(f).(::)
+(*b*) Pes quassus: Do(e) Ré(f) Mi(g).(::)
+
+(*b*) 
+(*b*) Neumas com Liquescências: (::)
+(*b*) Virga liquescente: Do(e{v}) Ré(f{v}) Mi(g{v}).(::)
+(*b*) Plica liquescente: Do(e{p}) Ré(f{p}) Mi(g{p}).(::)
+(*b*) Do(e{h}) Sol(b{h}) Do(e'{h}) - forma horizontal.(::)
+
+(*b*) 
+(*b*) Saltus Intervalicus: (::)
+(*b*) Do(e) Sol(b) Do(e').(::)
+(*b*) Ré(f) La(c) Ré(f').(::)
+
+(*b*) 
+(*b*) Neumas com Oriscus: (::)
+(*b*) Oriscus ascendens: Do(e) {o}Mi(g).(::)
+(*b*) Oriscus descendens: Sol(b) {o}Ré(f).(::)
+
+(*b*) 
+(*b*) Neumas com Quilisma: (::)
+(*b*) Quilisma: {q}Do(e) Sol(b).(::)
+
+(*b*) 
+(*b*) Bivirga e Trivirga: (::)
+(*b*) Bivirga: ||Do(e) Sol(b).(::)
+(*b*) Trivirga: |||Do(e) Sol(b).(::)
+
+(*b*) 
+(*b*) Pes tilde: Do(e) Mi(g~).(::)
+(*b*) Virga sobre Do: Do(|e) Sol(b).(::)
+
+(*b*) 
+(*b*) Exemplos de Finalis: (::)
+(*b*) Do(e.) Sol(b.) Do(e'!).(::)
+
+(*b*) 
+(*b*) Pausas: (::)
+(*b*) Minima: Do(e), Sol(b,), Do(e').(::)
+(*b*) Semibreve: Do(e;;) Sol(b;;) Do(e';;).(::)
+(*b*) Breve: Do(e;;;) Sol(b;;;) Do(e';;;).(::)
+(*b*) Longa: Do(e;;;;) Sol(b;;;;) Do(e';;;;).(::)
+
+(*b*) 
+(*b*) Quectem e Morae: (::)
+(*b*) Do(e/) Sol(b/) Do(e'/).(::)
+(*b*) Do(e//) Sol(b//) Do(e'//).(::)
+
+(*b*) 
+(*b*) Nota com punctum morae: Do(e&) Sol(b&) Do(e'&).(::)
+
+(*b*) 
+(*b*) Exemplos mistos: (::)
+(*b*) {q}Do(e) Sol(b) Do(e') {o}Mi(g) Ré(f) Do(e).(::)
+(*b*) Do(e) Sol(b) ||La(c) Do(e') Sol(b) |Mi(g) Ré(f) Do(e).(::)

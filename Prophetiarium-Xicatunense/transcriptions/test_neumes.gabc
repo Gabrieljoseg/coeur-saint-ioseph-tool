@@ -1,0 +1,38 @@
+name: Teste de Neumas;
+office-part: Exemplo;
+mode: 1;
+book: Exemplo de notação gregoriana;
+transcriber: Subagente GABC;
+commentary: Arquivo de teste com diversos tipos de neumas para demonstração;
+
+%%
+(c4) Escala completa: Do(gh) Ré(gj) Mi(hk) Fá(hl) Sol(hm) Lá(hn) Si(ho) Do(ip) Ré(iq) Mi(ir) Fá(is) Sol(it).(c.)
+(:)
+Scandicus: Do(gh) Ré(gj) Mi(hk).(f.)
+(:)
+Podatus: Mi(hk) Fá(hl) Sol(hm).(g.)
+(:)
+Clivis: Ré(gj) Do(gh).(d.)
+(:)
+Torculus: Sol(hm) Ré(gj) Do(gh).(h.)
+(:)
+Porrectus: Sol(hm) Do(gh) Ré(gj).(i.)
+(:)
+Pes quassus: Do(gh) Ré(gj) Mi(hk).(j.)
+(:)
+Salicus: Mi(hk) Fá(hl) Sol(hm).(k.)
+(:)
+Clivis reverso: Do(gh) Ré(gj).(e.)
+(:)
+Torculus resupinus: Do(gh) Sol(hm) Ré(gj).(l.)
+(:)
+Porrectus flexus: Sol(hm) Do(gh) Mi(hk).(m.)
+(:)
+Deminutum: Do(gh).(n.)
+(:)
+Auctum ascendens: Do(gh) Ré(gj).(o.)
+(:)
+Auctum descendens: Do(gh) Si(ho).(p.)
+(:)
+Finalis: Do(gh).(q.)
+(:)

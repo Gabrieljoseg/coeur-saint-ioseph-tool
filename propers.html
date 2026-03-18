@@ -70,6 +70,26 @@
       <li role="presentation"><a href="readings.html">Readings Tool</a></li>
       <li role="presentation" class="active"><a href="propers.html">Propers Tool</a></li>
       <li role="presentation"><a href="faq.html">(About)</a></li>
+      <!-- Dropdown para as profecias -->
+      <li role="presentation" class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+          Prophetias <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a href="#" onclick="loadProphetia('I')">Prophetia I</a></li>
+          <li><a href="#" onclick="loadProphetia('II')">Prophetia II</a></li>
+          <li><a href="#" onclick="loadProphetia('III')">Prophetia III</a></li>
+          <li><a href="#" onclick="loadProphetia('IV')">Prophetia IV</a></li>
+          <li><a href="#" onclick="loadProphetia('V')">Prophetia V</a></li>
+          <li><a href="#" onclick="loadProphetia('VI')">Prophetia VI</a></li>
+          <li><a href="#" onclick="loadProphetia('VII')">Prophetia VII</a></li>
+          <li><a href="#" onclick="loadProphetia('VIII')">Prophetia VIII</a></li>
+          <li><a href="#" onclick="loadProphetia('IX')">Prophetia IX</a></li>
+          <li><a href="#" onclick="loadProphetia('X')">Prophetia X</a></li>
+          <li><a href="#" onclick="loadProphetia('XI')">Prophetia XI</a></li>
+          <li><a href="#" onclick="loadProphetia('XII')">Prophetia XII</a></li>
+        </ul>
+      </li>
     </ul>
     <div style="float:right;margin-left:8px" class="btn-group hide-cordova" role="group">
       <a class='btn btn-xs btn-primary' href='#' id='lnkPdfDirect'>PDF</a>
@@ -104,19 +124,6 @@
           <li class="disabled ordinary"><a href='#' id='includeCustom2'><span class='glyphicon glyphicon-check'></span> <span class='lbl'>Ad libitum</span><span class='pull-right toggle-page-break glyphicon glyphicon-file'></span></a></li>
           <li class="disabled ordinary"><a href='#' id='includeCustom3'><span class='glyphicon glyphicon-check'></span> <span class='lbl'>Ad libitum</span><span class='pull-right toggle-page-break glyphicon glyphicon-file'></span></a></li>
           <li class="disabled ordinary"><a href='#' id='includeCustom4'><span class='glyphicon glyphicon-check'></span> <span class='lbl'>Ad libitum</span><span class='pull-right toggle-page-break glyphicon glyphicon-file'></span></a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="right hide-cordova" style="margin-top: 6px;margin-right: 6px;float: right!important;">
-      <div class="btn-group open-on-hover">
-        <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
-          <span class="lbl lbl-paper-size">Letter</span> Paper <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-right dropdown-paper-size">
-          <li><a href="#" paper="letter"><span class='glyphicon glyphicon-ok'></span> <span class="lbl">Letter</span></a></li>
-          <li><a href="#" paper="letter-booklet"><span class='glyphicon'></span> <span class="lbl">Letter Booklet</span></a></li>
-          <li><a href="#" paper="a4"><span class='glyphicon'></span> <span class="lbl">A4</span></a></li>
-          <li><a href="#" paper="a4-booklet"><span class='glyphicon'></span> <span class="lbl">A4 booklet</span></a></li>
         </ul>
       </div>
     </div>
@@ -647,5 +654,53 @@
     </filter> -->
   </defs>
   </svg>
+  
+  <script>
+    // Função para carregar as profecias
+    function loadProphetia(number) {
+      // Esta função buscará o arquivo GABC correspondente e o carregará no sistema
+      // Por enquanto, faremos um alerta para demonstrar a funcionalidade
+      alert('Carregando Prophetia ' + number + '.\\nEm uma implementação completa, isto carregaria o arquivo GABC correspondente.');
+      
+      // Exemplo de como carregar um arquivo GABC:
+      // 1. Determinar o nome do arquivo
+      var fileName = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + number + '_corrected.gabc';
+      
+      // 2. Carregar o conteúdo do arquivo
+      fetch(fileName)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Arquivo não encontrado: ' + fileName);
+          }
+          return response.text();
+        })
+        .then(data => {
+          // 3. Processar o conteúdo GABC
+          console.log('Conteúdo do arquivo GABC carregado:');
+          console.log(data);
+          
+          // 4. Renderizar a profecia no sistema
+          // Isto dependeria da estrutura específica do sistema de propers
+          renderProphetia(data, number);
+        })
+        .catch(error => {
+          console.error('Erro ao carregar o arquivo GABC:', error);
+          alert('Erro ao carregar Prophetia ' + number + ': ' + error.message);
+        });
+    }
+    
+    // Função para renderizar a profecia no sistema
+    function renderProphetia(gabcContent, number) {
+      // Esta função integraria o conteúdo GABC à interface do sistema
+      // Por enquanto, apenas mostraremos o conteúdo em um alerta
+      alert('Prophetia ' + number + ' carregada com sucesso!\\nConteúdo:\\n' + gabcContent.substring(0, 200) + '...');
+      
+      // Em uma implementação completa, esta função:
+      // 1. Adicionaria uma nova seção para a profecia
+      // 2. Processaria o conteúdo GABC
+      // 3. Renderizaria a melodia usando as funções do sistema
+      // 4. Atualizaria a interface para mostrar a profecia
+    }
+  </script>
 </body>
 </html>

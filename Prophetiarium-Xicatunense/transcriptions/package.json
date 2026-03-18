@@ -1,0 +1,21 @@
+{
+  "name": "gabc-editor",
+  "version": "1.0.0",
+  "description": "Editor básico para criar e modificar arquivos GABC (Gregorio ASCII)",
+  "main": "gabc-editor.js",
+  "scripts": {
+    "start": "node gabc-editor-cli.js",
+    "test": "node test-gabc-editor.js"
+  },
+  "keywords": [
+    "gabc",
+    "gregorian chant",
+    "music notation",
+    "liturgical music"
+  ],
+  "author": "Subagente GABC",
+  "license": "MIT",
+  "bin": {
+    "gabc-editor": "./gabc-editor-cli.js"
+  }
+}
