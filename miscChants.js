@@ -204,4 +204,21 @@ miscChants = [
   { name: "Vexilla Regis prodeunt (tempore passionis)", id: 2120 },
   { name: "Virgo Dei Genitrix", id: 3320 },
   { name: "Virgo parens Christi", id: 4072 },
+  {
+    name: "Prophetiarium Xicatunense",
+    children: [
+      { name: "Prophetia I",    id: "PROPHETIA_I" },
+      { name: "Prophetia II",   id: "PROPHETIA_II" },
+      { name: "Prophetia III",  id: "PROPHETIA_III" },
+      { name: "Prophetia IV",   id: "PROPHETIA_IV" },
+      { name: "Prophetia V",    id: "PROPHETIA_V" },
+      { name: "Prophetia VI",   id: "PROPHETIA_VI" },
+      { name: "Prophetia VII",  id: "PROPHETIA_VII" },
+      { name: "Prophetia VIII", id: "PROPHETIA_VIII" },
+      { name: "Prophetia IX",   id: "PROPHETIA_IX" },
+      { name: "Prophetia X",    id: "PROPHETIA_X" },
+      { name: "Prophetia XI",   id: "PROPHETIA_XI" },
+      { name: "Prophetia XII",  id: "PROPHETIA_XII" },
+    ],
+  },
 ];

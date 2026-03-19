@@ -70,26 +70,6 @@
       <li role="presentation"><a href="readings.html">Readings Tool</a></li>
       <li role="presentation" class="active"><a href="propers.html">Propers Tool</a></li>
       <li role="presentation"><a href="faq.html">(About)</a></li>
-      <!-- Dropdown para as profecias -->
-      <li role="presentation" class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-          Prophetias <span class="caret"></span>
-        </a>
-        <ul class="dropdown-menu">
-          <li><a href="#" onclick="loadProphetia('I')">Prophetia I</a></li>
-          <li><a href="#" onclick="loadProphetia('II')">Prophetia II</a></li>
-          <li><a href="#" onclick="loadProphetia('III')">Prophetia III</a></li>
-          <li><a href="#" onclick="loadProphetia('IV')">Prophetia IV</a></li>
-          <li><a href="#" onclick="loadProphetia('V')">Prophetia V</a></li>
-          <li><a href="#" onclick="loadProphetia('VI')">Prophetia VI</a></li>
-          <li><a href="#" onclick="loadProphetia('VII')">Prophetia VII</a></li>
-          <li><a href="#" onclick="loadProphetia('VIII')">Prophetia VIII</a></li>
-          <li><a href="#" onclick="loadProphetia('IX')">Prophetia IX</a></li>
-          <li><a href="#" onclick="loadProphetia('X')">Prophetia X</a></li>
-          <li><a href="#" onclick="loadProphetia('XI')">Prophetia XI</a></li>
-          <li><a href="#" onclick="loadProphetia('XII')">Prophetia XII</a></li>
-        </ul>
-      </li>
     </ul>
     <div style="float:right;margin-left:8px" class="btn-group hide-cordova" role="group">
       <a class='btn btn-xs btn-primary' href='#' id='lnkPdfDirect'>PDF</a>
@@ -623,20 +603,6 @@
       </div>
     </div>
   </div>
-  <div id='divProphetia' part='prophetia' style='display:none;'>
-    <div class='block hide-print'>
-      <label class="hide-ss" id="lblProphetiaTitle">Prophetia <span id="prophetiaNum"></span></label>
-      <a class='toggleShowGabc hide-ss' onclick='$("#txtProphetia").toggle()'>(<span class='showHide'>Show</span> Text Editor)</a>
-      <textarea id="txtProphetia" style="display:none;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-    </div>
-    <div class='block right'>
-      <div class='chant-parent'>
-        <div id="prophetia-preview-container" class='preview-container'>
-          <div id="prophetia-preview" class='chant-preview'></div>
-        </div>
-      </div>
-    </div>
-  </div>
   <div id='mandatory-extra-chants'></div>
   <div class='lyric-font' style='font-size: 1px; visibility: hidden;' >I<span class='b'>I<span class='i'>I</span></span><span class='i'>I</span></div>
   <svg class="bg-blur">
@@ -691,53 +657,5 @@
   </defs>
   </svg>
   
-  <script>
-    $(function() {
-      // Event listener for the Prophetia Dropdown
-      $('#selProphetia').change(function() {
-        var num = $(this).val();
-        if(!num) {
-          $('#divProphetia').hide();
-          return;
-        }
-        $('#divProphetia').show();
-        $('#prophetiaNum').text(num);
-        
-        // Fetch original GABC correct name
-        var fileName = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + num + '.gabc';
-        $.get(fileName, function(gabc) {
-          $('#txtProphetia').val(gabc).change();
-        }).fail(function() {
-          $('#txtProphetia').val('Error loading: ' + fileName).change();
-        });
-      });
-
-      // Render the GABC on textchange using Exsurge
-      $('#txtProphetia').on('input change', function() {
-        var gabc = $(this).val();
-        if (!gabc) return;
-        
-        try {
-          var ctxt = typeof makeExsurgeChantContext === 'function' ? makeExsurgeChantContext() : new exsurge.ChantContext();
-          // Fixed: Exsurge uses createMappingsFromSource (plural)
-          var mappings = exsurge.Gabc.createMappingsFromSource(ctxt, gabc);
-          var score = new exsurge.ChantScore(ctxt, mappings, true);
-          var container = document.getElementById('prophetia-preview');
-          while (container.firstChild) container.removeChild(container.firstChild);
-
-          score.performLayoutAsync(function() {
-            container.appendChild(score.createSvgNode());
-          });
-        } catch (e) {
-          console.error("Error rendering GABC with Exsurge:", e);
-        }
-      });
-    });
-
-    // Retro-compatibility function for the top-navbar dropdown if clicked
-    function loadProphetia(number) {
-      $('#selProphetia').val(number).change();
-    }
-  </script>
 </body>
 </html>
