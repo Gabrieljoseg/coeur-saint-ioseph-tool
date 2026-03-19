@@ -449,7 +449,8 @@ $(function(){
       }
     }
     var $includePart = $('#include'+capPart);
-    $('#lbl'+capPart).find('a').attr('href',(id && typeof(id)!='object')? gregobaseUrlPrefix+id : null);
+    var isProphetia = id && typeof(id) != 'object' && /^PROPHETIA_/.test(id);
+    $('#lbl'+capPart).find('a').attr('href',(id && typeof(id)!='object' && !isProphetia)? gregobaseUrlPrefix+id : null);
     $div.toggleClass('showing-chant', !!(id && id != 'no'));
     if(id || (selDay=='custom' && !isOrdinaryPart)) {
       $includePart.parent('li').removeClass('disabled');
@@ -633,7 +634,10 @@ $(function(){
         } else {
           $extraChantsPlaceholder.remove();
           sel[part].id = id;
-          $.get('gabc/'+id+'.gabc',updateGabc);
+          var gabcPath = /^PROPHETIA_/.test(id)
+            ? 'Prophetiarium-Xicatunense/transcriptions/' + id + '.gabc'
+            : 'gabc/' + id + '.gabc';
+          $.get(gabcPath, updateGabc);
         }
       } else {
         $extraChantsPlaceholder.remove();
@@ -854,108 +858,10 @@ $(function(){
   
 
   
-  // Função de renderização direta usando Exsurge
-  function renderProphetiaDirect(gabcBody, headerStr) {
-    try {
-      var $preview = $('#custom-preview');
-      $preview.empty();
-
-      console.log('=== renderProphetiaDirect: Iniciando ===');
-      console.log('gabcBody (primeiros 120 chars):', gabcBody.substring(0, 120));
-
-      // Garantir que gabcBody começa com a clave — remover qualquer %% residual
-      var cleanBody = gabcBody.replace(/^[\s%]+/, '').trim();
-      console.log('cleanBody (primeiros 120 chars):', cleanBody.substring(0, 120));
-
-      if (!cleanBody) {
-        throw new Error('GABC body está vazio após limpeza');
-      }
-
-      // Fazer parse simples do header para pegar mode/officePart
-      var mode = null;
-      var officePart = null;
-      if (headerStr) {
-        var modeMatch = headerStr.match(/^mode\s*:\s*(\d+)/im);
-        var partMatch = headerStr.match(/^office-part\s*:\s*([^;\r\n]+)/im);
-        if (modeMatch) mode = modeMatch[1];
-        if (partMatch) officePart = partMatch[1].trim().toLowerCase();
-      }
-      console.log('mode:', mode, 'officePart:', officePart);
-
-      // Criar novo contexto (sempre fresco para evitar estado sujo)
-      var ctxt = makeExsurgeChantContext();
-      sel.custom.ctxt = ctxt;
-
-      // Criar mappings diretamente do corpo limpo
-      console.log('Criando mappings...');
-      var mappings = exsurge.Gabc.createMappingsFromSource(ctxt, cleanBody);
-      console.log('Mappings criados:', mappings.length);
-
-      // Criar score
-      console.log('Criando score...');
-      var score = new exsurge.ChantScore(ctxt, mappings, true);
-      console.log('Score criado');
-
-      // Adicionar annotation se tiver mode
-      if (mode) {
-        var romanMode = romanNumeral[mode];
-        var annotation = partAbbrev[officePart] || null;
-        try {
-          if (annotation && annotation !== 'V/.') {
-            score.annotation = new exsurge.Annotations(ctxt, '%' + annotation + '%', '%' + romanMode + '%');
-          } else {
-            score.annotation = new exsurge.Annotations(ctxt, '%' + romanMode + '%');
-          }
-        } catch(ae) {
-          console.warn('Annotation falhou (ignorando):', ae);
-        }
-      }
-
-      // Fazer layout
-      console.log('Fazendo layout...');
-      score.layout();
-      console.log('Layout completado');
-
-      // Obter SVG
-      console.log('Obtendo SVG...');
-      var svg = score.getSvg();
-      if (!svg) throw new Error('getSvg() retornou nulo');
-      console.log('SVG obtido, length:', (svg.outerHTML||'').length || 'DOM element');
-
-      // Inserir no preview
-      $preview.empty().append(svg);
-
-      // Guardar score para playback
-      sel.custom.score = score;
-
-      // Adicionar controles de playback
-      addPlaybackControls($preview, score);
-
-      console.log('=== renderProphetiaDirect: Completado ===');
-
-      // Scroll até o divCustom
-      $('html, body').animate({
-        scrollTop: $('#divCustom').offset().top - 100
-      }, 300);
-
-    } catch (e) {
-      console.error('=== ERRO em renderProphetiaDirect ===', e);
-      $('#custom-preview').html(
-        '<div style="color:red;padding:10px;border:1px solid red;border-radius:4px;">' +
-        '<strong>Erro ao renderizar:</strong> ' + e.message + '<br>' +
-        '<small>Ver console (F12) para detalhes.</small></div>'
-      );
-    }
-  }
-  
-  // Event listener do dropdown PROPHETIAS PRE-55
+  // Event listener do dropdown PROPHETIAS PRE-55 — delega ao pipeline padrão via selCustom1
   $(document).on('change', '#selProphetia', function() {
     var val = $(this).val();
-    if (val) {
-      loadProphetia(val);
-    } else {
-      clearProphetia();
-    }
+    $('[part=custom1] select').val(val ? 'PROPHETIA_' + val : '').change();
   });
 
   // Adicionar controles de playback
@@ -2783,49 +2689,11 @@ $(function(){
 
   // ── PROPHETIAS PRE-55 ────────────────────────────────────────────────────
   window.clearProphetia = function() {
-    $('#selProphetia').val('');
-    $('#lblCustom a').text('Ad libitum');
-    $('#custom-preview').empty();
-    $('#txtCustom').val('');
-    sel.custom = sel.custom || {};
-    sel.custom.gabc = sel.custom.activeGabc = '';
-    $('#selCustom').val('').change();
-    $('.playback-controls').remove();
+    $('#selProphetia').val('').change();
   };
 
   window.loadProphetia = function(number) {
-    if (!number) { window.clearProphetia(); return; }
-    if (typeof exsurge === 'undefined') {
-      alert('Erro: Exsurge não está carregado. Recarregue a página.');
-      return;
-    }
-    $('#selProphetia').val(number);
-    var fileName = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + number + '.gabc';
-    $.get(fileName).done(processGabc).fail(function() {
-      alert('Erro ao carregar Prophetia ' + number);
-    });
-    function processGabc(data) {
-      var parts = data.split(/\n?%%\n?/);
-      var headerStr = parts[0].trim();
-      var gabcBody  = parts[parts.length - 1].trim();
-      if (!gabcBody) { alert('GABC body vazio para Prophetia ' + number); return; }
-      var fullGabc = headerStr + '\n%%\n' + gabcBody;
-      if (!sel.custom) sel.custom = {};
-      if (!sel.custom.ctxt) makeChantContextForSel(sel.custom);
-      sel.custom.gabc  = fullGabc;
-      sel.custom.style = 'full';
-      sel.custom.id    = null;
-      sel.custom.responsoryCallbacks = null;
-      $('#lblCustom a').text('Prophetia ' + number);
-      $('#txtCustom').val(fullGabc);
-      $('[custom-chant]').not('#divCustom').hide();
-      $('#divCustom').show();
-      $('.playback-controls').remove();
-      updateTextAndChantForPart('custom');
-      setTimeout(function() {
-        $('html, body').animate({ scrollTop: $('#divCustom').offset().top - 80 }, 300);
-      }, 500);
-    }
+    $('#selProphetia').val(number || '').change();
   };
   // ── FIM PROPHETIAS ───────────────────────────────────────────────────────
   $.each(sel,function(){
