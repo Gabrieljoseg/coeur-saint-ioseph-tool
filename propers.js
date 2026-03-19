@@ -852,190 +852,334 @@ $(function(){
     }
   }
   
-  // Função para carregar uma profecia específica do Prophetiarium Xicatunense
-  window.loadProphetia = function(number) {
-    // Determinar o nome do arquivo GABC
-    var fileName = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + number + '_corrected.gabc';
-    
-    // Carregar o conteúdo do arquivo GABC
-    $.get(fileName)
-      .done(function(data) {
-        // Processar o conteúdo GABC e extrair informações
-        var lines = data.split('\n');
-        var header = {};
-        var body = [];
-        var inHeader = true;
-        
-        for (var i = 0; i < lines.length; i++) {
-          var line = lines[i].trim();
-          if (line === '%%') {
-            inHeader = false;
-            continue;
-          }
-          
-          if (inHeader && line.includes(':') && line.includes(';')) {
-            // Processar linha de cabeçalho
-            var colonIndex = line.indexOf(':');
-            var semicolonIndex = line.lastIndexOf(';');
-            if (colonIndex > 0 && semicolonIndex > colonIndex) {
-              var key = line.substring(0, colonIndex).trim();
-              var value = line.substring(colonIndex + 1, semicolonIndex).trim();
-              header[key] = value;
-            }
-          } else if (!inHeader) {
-            body.push(line);
-          }
-        }
-        
-        // Atualizar interface com a profecia
-        updateProphetiaDisplay(number, header, body.join('\n'));
-      })
-      .fail(function() {
-        // Caso o arquivo com o sufixo _corrected.gabc não exista, tentar sem o sufixo
-        var fileNameOriginal = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + number + '.gabc';
-        $.get(fileNameOriginal)
-          .done(function(data) {
-            // Processar o conteúdo GABC e extrair informações
-            var lines = data.split('\n');
-            var header = {};
-            var body = [];
-            var inHeader = true;
-            
-            for (var i = 0; i < lines.length; i++) {
-              var line = lines[i].trim();
-              if (line === '%%') {
-                inHeader = false;
-                continue;
-              }
-              
-              if (inHeader && line.includes(':') && line.includes(';')) {
-                // Processar linha de cabeçalho
-                var colonIndex = line.indexOf(':');
-                var semicolonIndex = line.lastIndexOf(';');
-                if (colonIndex > 0 && semicolonIndex > colonIndex) {
-                  var key = line.substring(0, colonIndex).trim();
-                  var value = line.substring(colonIndex + 1, semicolonIndex).trim();
-                  header[key] = value;
-                }
-              } else if (!inHeader) {
-                body.push(line);
-              }
-            }
-            
-            // Atualizar interface com a profecia
-            updateProphetiaDisplay(number, header, body.join('\n'));
-          })
-          .fail(function() {
-            alert('Erro ao carregar Prophetia ' + number + ': Arquivo não encontrado.');
-          });
-      });
-  };
+
   
-  // Função para atualizar a exibição com a profecia carregada
-  function updateProphetiaDisplay(number, header, body) {
-    // Criar ou atualizar um elemento para exibir a profecia
-    var prophetiaId = 'prophetia-' + number;
-    var $prophetiaDiv = $('#' + prophetiaId);
-    
-    if ($prophetiaDiv.length === 0) {
-      // Criar novo elemento para a profecia
-      $prophetiaDiv = $('<div>', {
-        id: prophetiaId,
-        'class': 'prophetia-display'
-      });
-      
-      // Adicionar título
-      var title = header.name || 'Prophetia ' + number;
-      $prophetiaDiv.append($('<h3>', { text: title }));
-      
-      // Adicionar informações do cabeçalho
-      var infoText = 'Modo: ' + (header.mode || 'Desconhecido') + 
-                     ', Parte: ' + (header['office-part'] || 'Desconhecido') +
-                     ', Referência: ' + (header.commentary || 'Desconhecido');
-      $prophetiaDiv.append($('<p>', { text: infoText, 'class': 'prophetia-info' }));
-      
-      // Adicionar conteúdo GABC
-      $prophetiaDiv.append($('<pre>', { 
-        text: body, 
-        'class': 'prophetia-content' 
-      }));
-      
-      // Adicionar botão para renderizar a melodia
-      var $renderButton = $('<button>', {
-        text: 'Renderizar Melodia',
-        'class': 'btn btn-primary render-btn',
-        click: function() {
-          renderGabcToChant(body, 'prophetia-' + number + '-chant');
+  // Função de renderização direta usando Exsurge
+  function renderProphetiaDirect(gabcBody, headerStr) {
+    try {
+      var $preview = $('#custom-preview');
+      $preview.empty();
+
+      console.log('=== renderProphetiaDirect: Iniciando ===');
+      console.log('gabcBody (primeiros 120 chars):', gabcBody.substring(0, 120));
+
+      // Garantir que gabcBody começa com a clave — remover qualquer %% residual
+      var cleanBody = gabcBody.replace(/^[\s%]+/, '').trim();
+      console.log('cleanBody (primeiros 120 chars):', cleanBody.substring(0, 120));
+
+      if (!cleanBody) {
+        throw new Error('GABC body está vazio após limpeza');
+      }
+
+      // Fazer parse simples do header para pegar mode/officePart
+      var mode = null;
+      var officePart = null;
+      if (headerStr) {
+        var modeMatch = headerStr.match(/^mode\s*:\s*(\d+)/im);
+        var partMatch = headerStr.match(/^office-part\s*:\s*([^;\r\n]+)/im);
+        if (modeMatch) mode = modeMatch[1];
+        if (partMatch) officePart = partMatch[1].trim().toLowerCase();
+      }
+      console.log('mode:', mode, 'officePart:', officePart);
+
+      // Criar novo contexto (sempre fresco para evitar estado sujo)
+      var ctxt = makeExsurgeChantContext();
+      sel.custom.ctxt = ctxt;
+
+      // Criar mappings diretamente do corpo limpo
+      console.log('Criando mappings...');
+      var mappings = exsurge.Gabc.createMappingsFromSource(ctxt, cleanBody);
+      console.log('Mappings criados:', mappings.length);
+
+      // Criar score
+      console.log('Criando score...');
+      var score = new exsurge.ChantScore(ctxt, mappings, true);
+      console.log('Score criado');
+
+      // Adicionar annotation se tiver mode
+      if (mode) {
+        var romanMode = romanNumeral[mode];
+        var annotation = partAbbrev[officePart] || null;
+        try {
+          if (annotation && annotation !== 'V/.') {
+            score.annotation = new exsurge.Annotations(ctxt, '%' + annotation + '%', '%' + romanMode + '%');
+          } else {
+            score.annotation = new exsurge.Annotations(ctxt, '%' + romanMode + '%');
+          }
+        } catch(ae) {
+          console.warn('Annotation falhou (ignorando):', ae);
         }
-      });
-      $prophetiaDiv.append($renderButton);
-      
-      // Adicionar contêiner para a renderização da melodia
-      $prophetiaDiv.append($('<div>', {
-        id: 'prophetia-' + number + '-chant',
-        'class': 'chant-render-container'
-      }));
-      
-      // Adicionar ao final da página
-      $('body').append($prophetiaDiv);
-    } else {
-      // Atualizar conteúdo existente
-      $prophetiaDiv.find('h3').text(header.name || 'Prophetia ' + number);
-      var infoText = 'Modo: ' + (header.mode || 'Desconhecido') + 
-                     ', Parte: ' + (header['office-part'] || 'Desconhecido') +
-                     ', Referência: ' + (header.commentary || 'Desconhecido');
-      $prophetiaDiv.find('.prophetia-info').text(infoText);
-      $prophetiaDiv.find('.prophetia-content').text(body);
+      }
+
+      // Fazer layout
+      console.log('Fazendo layout...');
+      score.layout();
+      console.log('Layout completado');
+
+      // Obter SVG
+      console.log('Obtendo SVG...');
+      var svg = score.getSvg();
+      if (!svg) throw new Error('getSvg() retornou nulo');
+      console.log('SVG obtido, length:', (svg.outerHTML||'').length || 'DOM element');
+
+      // Inserir no preview
+      $preview.empty().append(svg);
+
+      // Guardar score para playback
+      sel.custom.score = score;
+
+      // Adicionar controles de playback
+      addPlaybackControls($preview, score);
+
+      console.log('=== renderProphetiaDirect: Completado ===');
+
+      // Scroll até o divCustom
+      $('html, body').animate({
+        scrollTop: $('#divCustom').offset().top - 100
+      }, 300);
+
+    } catch (e) {
+      console.error('=== ERRO em renderProphetiaDirect ===', e);
+      $('#custom-preview').html(
+        '<div style="color:red;padding:10px;border:1px solid red;border-radius:4px;">' +
+        '<strong>Erro ao renderizar:</strong> ' + e.message + '<br>' +
+        '<small>Ver console (F12) para detalhes.</small></div>'
+      );
     }
-    
-    // Mostrar mensagem de sucesso
-    alert('Prophetia ' + number + ' carregada com sucesso!');
   }
   
-  // Função para renderizar o conteúdo GABC como notação musical
-  function renderGabcToChant(gabcContent, containerId) {
-    try {
-      // Criar contexto para a renderização
-      var chantContainer = $('#' + containerId)[0];
-      if (!chantContainer) {
-        console.error('Contêiner de renderização não encontrado: ' + containerId);
-        return;
-      }
-      
-      // Limpar conteúdo anterior
-      $(chantContainer).empty();
-      
-      // Extrair cabeçalho do GABC
-      var headerEndIndex = gabcContent.indexOf('%%');
-      var headerStr = headerEndIndex !== -1 ? gabcContent.substring(0, headerEndIndex) : '';
-      var gabcBody = headerEndIndex !== -1 ? gabcContent.substring(headerEndIndex + 2) : gabcContent;
-      
-      // Criar objeto de contexto para a melodia
-      var chantCtx = makeExsurgeChantContext();
-      chantCtx.width = 600; // Definir largura padrão
-      
-      // Atualizar o contêiner com o conteúdo GABC
-      sel.custom1 = sel.custom1 || {};
-      makeChantContextForSel(sel.custom1);
-      sel.custom1.gabc = headerStr + '%%\n' + gabcBody;
-      sel.custom1.activeGabc = gabcBody;
-      sel.custom1.text = 'Prophetia';
-      sel.custom1.style = 'full';
-      
-      // Atualizar a exibição
-      updateExsurge('custom1', null, true);
-      
-      // Obter o preview do conteúdo custom1 e mover para o contêiner desejado
-      var $sourcePreview = $('#custom1-preview');
-      if ($sourcePreview.length > 0) {
-        $sourcePreview.appendTo('#' + containerId);
-      } else {
-        $(chantContainer).text('Não foi possível renderizar a melodia.');
-      }
-    } catch (e) {
-      console.error('Erro ao renderizar GABC:', e);
-      $('#' + containerId).text('Erro ao renderizar a melodia: ' + e.message);
+  // Event listener do dropdown PROPHETIAS PRE-55
+  $(document).on('change', '#selProphetia', function() {
+    var val = $(this).val();
+    if (val) {
+      loadProphetia(val);
+    } else {
+      clearProphetia();
     }
+  });
+
+  // Adicionar controles de playback
+  function addPlaybackControls($container, score) {
+    var $controls = $('<div class="playback-controls" style="margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 5px;">' +
+      '<button id="btnPlay" class="btn btn-sm btn-primary" style="margin-right: 10px;">▶ Play</button>' +
+      '<button id="btnStop" class="btn btn-sm btn-danger">⏹ Stop</button>' +
+      '<span style="margin-left: 20px;">Tempo: <input type="range" id="sliderTempo" min="60" max="200" value="100" style="width: 100px;"> <span id="lblTempo">100</span></span>' +
+      '</div>');
+    
+    $container.after($controls);
+    
+    // Event listeners
+    $('#btnPlay').on('click', function() {
+      playChant(score);
+    });
+    
+    $('#btnStop').on('click', function() {
+      stopChant();
+    });
+    
+    $('#sliderTempo').on('input', function() {
+      $('#lblTempo').text(this.value);
+    });
+  }
+  
+  // Variáveis globais para playback
+  var isPlaying = false;
+  var currentTimeouts = [];
+  
+  // Converter staffPosition para frequência
+  // No Exsurge, staffPosition é relativo ao Dó (Do clef) ou Fá (Fa clef)
+  // staffPosition = 0 é a linha do clef
+  // Cada unidade = 1 passo na escala diatônica
+  function staffPositionToFrequency(staffPosition, clef, transpose) {
+    // Frequência base para o Dó central (C4) = 261.63 Hz
+    // No sistema do Exsurge:
+    // - Do clef na linha 3: staffPosition 0 = C4
+    // - Fa clef na linha 4: staffPosition 0 = F3
+    
+    var baseFreq;
+    if (clef === 'c') {
+      // Do clef: staffPosition 0 = C4 (261.63 Hz)
+      baseFreq = 261.63;
+    } else {
+      // Fa clef: staffPosition 0 = F3 (174.61 Hz)
+      baseFreq = 174.61;
+    }
+    
+    // Ajustar por transpose (opcional)
+    if (transpose) {
+      staffPosition += transpose;
+    }
+    
+    // Calcular frequência usando escala pitagórica ou justa
+    // Para canto gregoriano, usamos uma aproximação da escala justa
+    // Cada passo no staff = 1 nota na escala diatônica
+    
+    // Intervalos em semitons para cada passo no staff
+    // [C, D, E, F, G, A, B] = [0, 2, 4, 5, 7, 9, 11] semitons
+    var semitones = [0, 2, 4, 5, 7, 9, 11];
+    
+    // Calcular oitava e posição na escala
+    var octaveOffset = Math.floor(staffPosition / 7);
+    var scaleIndex = ((staffPosition % 7) + 7) % 7; // Garantir índice positivo
+    
+    // Calcular semitons totais a partir da nota base
+    var totalSemitones = octaveOffset * 12 + semitones[scaleIndex];
+    
+    // Calcular frequência: f = f0 * 2^(n/12)
+    var frequency = baseFreq * Math.pow(2, totalSemitones / 12);
+    
+    return frequency;
+  }
+  
+  // Tocar o canto
+  function playChant(score) {
+    if (isPlaying) {
+      stopChant();
+    }
+    
+    console.log('=== playChant: Iniciando ===');
+    
+    // Verificar se Tone.js ou tones está disponível
+    var audioContext = null;
+    if (window.Tone && window.Tone.context) {
+      audioContext = window.Tone.context._context || window.Tone.context.context;
+      console.log('Usando Tone.js');
+    } else if (window.tones && window.tones.context) {
+      audioContext = window.tones.context;
+      console.log('Usando tones.js');
+    } else {
+      // Criar AudioContext nativo
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      console.log('Usando AudioContext nativo');
+    }
+    
+    // Obter todas as notações do score
+    var notations = score.notations;
+    console.log('Número de notações:', notations.length);
+    
+    // Extrair todas as notas
+    var allNotes = [];
+    for (var i = 0; i < notations.length; i++) {
+      var notation = notations[i];
+      if (notation.isNeume && notation.notes) {
+        for (var j = 0; j < notation.notes.length; j++) {
+          var note = notation.notes[j];
+          if (note.staffPosition !== undefined) {
+            allNotes.push({
+              staffPosition: note.staffPosition,
+              notationIndex: i,
+              noteIndex: j,
+              text: notation.lyrics && notation.lyrics[0] ? notation.lyrics[0].text : ''
+            });
+          }
+        }
+      }
+    }
+    
+    console.log('Número de notas:', allNotes.length);
+    console.log('Primeiras notas:', allNotes.slice(0, 5));
+    
+    if (allNotes.length === 0) {
+      alert('Nenhuma nota encontrada para tocar');
+      return;
+    }
+    
+    // Determinar clef do canto
+    var clef = 'c'; // Default: Do clef
+    for (var i = 0; i < notations.length; i++) {
+      if (notations[i].isClef) {
+        clef = notations[i].clefType || 'c';
+        break;
+      }
+    }
+    console.log('Clef:', clef);
+    
+    // Obter tempo do slider
+    var tempo = parseInt($('#sliderTempo').val()) || 100;
+    var baseDuration = 60000 / tempo; // ms por nota
+    
+    // Tocar cada nota
+    isPlaying = true;
+    var currentTime = audioContext.currentTime + 0.1; // Começar após 100ms
+    
+    allNotes.forEach(function(noteData, index) {
+      var freq = staffPositionToFrequency(noteData.staffPosition, clef);
+      console.log('Nota ' + index + ': staffPosition=' + noteData.staffPosition + ', freq=' + freq.toFixed(2) + ' Hz, texto=' + noteData.text);
+      
+      // Criar oscilador
+      var oscillator = audioContext.createOscillator();
+      var gainNode = audioContext.createGain();
+      
+      // Configurar oscilador (onda senoidal para som suave)
+      oscillator.type = 'sine';
+      oscillator.frequency.value = freq;
+      
+      // Configurar envelope (attack, decay, sustain, release)
+      var attackTime = 0.05; // 50ms attack
+      var releaseTime = 0.1; // 100ms release
+      var noteDuration = baseDuration / 1000; // converter para segundos
+      
+      gainNode.gain.setValueAtTime(0, currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, currentTime + attackTime);
+      gainNode.gain.setValueAtTime(0.3, currentTime + noteDuration - releaseTime);
+      gainNode.gain.linearRampToValueAtTime(0, currentTime + noteDuration);
+      
+      // Conectar
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Agendar
+      oscillator.start(currentTime);
+      oscillator.stop(currentTime + noteDuration);
+      
+      // Highlight visual (opcional)
+      var timeoutId = setTimeout(function() {
+        highlightNote(index, allNotes.length);
+      }, (currentTime - audioContext.currentTime) * 1000);
+      currentTimeouts.push(timeoutId);
+      
+      // Próxima nota
+      currentTime += noteDuration * 0.8; // Sobrepor um pouco as notas (legato)
+    });
+    
+    // Agendar fim do playback
+    var finalTimeout = setTimeout(function() {
+      isPlaying = false;
+      console.log('=== Playback completado ===');
+    }, (currentTime - audioContext.currentTime) * 1000);
+    currentTimeouts.push(finalTimeout);
+  }
+  
+  // Parar playback
+  function stopChant() {
+    console.log('=== stopChant ===');
+    
+    // Limpar todos os timeouts
+    currentTimeouts.forEach(function(id) {
+      clearTimeout(id);
+    });
+    currentTimeouts = [];
+    
+    // Remover highlights
+    $('.note-highlight').removeClass('note-highlight');
+    
+    isPlaying = false;
+  }
+  
+  // Highlight visual de uma nota
+  function highlightNote(noteIndex, totalNotes) {
+    // Remover highlights anteriores
+    $('.note-highlight').removeClass('note-highlight');
+    
+    // Adicionar highlight na nota atual (se SVG tiver as notas identificadas)
+    var $note = $('#custom-preview').find('[id*="note"]').eq(noteIndex);
+    if ($note.length > 0) {
+      $note.addClass('note-highlight');
+    }
+    
+    // Atualizar progresso
+    var progress = ((noteIndex + 1) / totalNotes * 100).toFixed(1);
+    console.log('Progresso: ' + progress + '%');
   }
   function updateReadings(readings, $lectiones) {
     $lectiones.find('.lectio-reference').text(function(i) { return readings[i]; });
@@ -2590,7 +2734,7 @@ $(function(){
     return applyLiquescents(gabc);
   }
 
-  var updateTextAndChantForPart = function(part, updateFromOldScore) {
+  var updateTextAndChantForPart = window.updateTextAndChantForPart = function(part, updateFromOldScore) {
     var gabc,
         capPart = part[0].toUpperCase()+part.slice(1),
         $div = $('#div'+capPart),
@@ -2636,6 +2780,54 @@ $(function(){
   function makeChantContextForSel(sel) {
     sel.ctxt = makeExsurgeChantContext();
   };
+
+  // ── PROPHETIAS PRE-55 ────────────────────────────────────────────────────
+  window.clearProphetia = function() {
+    $('#selProphetia').val('');
+    $('#lblCustom a').text('Ad libitum');
+    $('#custom-preview').empty();
+    $('#txtCustom').val('');
+    sel.custom = sel.custom || {};
+    sel.custom.gabc = sel.custom.activeGabc = '';
+    $('#selCustom').val('').change();
+    $('.playback-controls').remove();
+  };
+
+  window.loadProphetia = function(number) {
+    if (!number) { window.clearProphetia(); return; }
+    if (typeof exsurge === 'undefined') {
+      alert('Erro: Exsurge não está carregado. Recarregue a página.');
+      return;
+    }
+    $('#selProphetia').val(number);
+    var fileName = 'Prophetiarium-Xicatunense/transcriptions/PROPHETIA_' + number + '.gabc';
+    $.get(fileName).done(processGabc).fail(function() {
+      alert('Erro ao carregar Prophetia ' + number);
+    });
+    function processGabc(data) {
+      var parts = data.split(/\n?%%\n?/);
+      var headerStr = parts[0].trim();
+      var gabcBody  = parts[parts.length - 1].trim();
+      if (!gabcBody) { alert('GABC body vazio para Prophetia ' + number); return; }
+      var fullGabc = headerStr + '\n%%\n' + gabcBody;
+      if (!sel.custom) sel.custom = {};
+      if (!sel.custom.ctxt) makeChantContextForSel(sel.custom);
+      sel.custom.gabc  = fullGabc;
+      sel.custom.style = 'full';
+      sel.custom.id    = null;
+      sel.custom.responsoryCallbacks = null;
+      $('#lblCustom a').text('Prophetia ' + number);
+      $('#txtCustom').val(fullGabc);
+      $('[custom-chant]').not('#divCustom').hide();
+      $('#divCustom').show();
+      $('.playback-controls').remove();
+      updateTextAndChantForPart('custom');
+      setTimeout(function() {
+        $('html, body').animate({ scrollTop: $('#divCustom').offset().top - 80 }, 300);
+      }, 500);
+    }
+  };
+  // ── FIM PROPHETIAS ───────────────────────────────────────────────────────
   $.each(sel,function(){
     makeChantContextForSel(this);
   });

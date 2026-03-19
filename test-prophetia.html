@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Teste Prophetia III</title>
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <link rel="stylesheet" type="text/css" href="propers.css" />
+  <script src="jquery.min.js"></script>
+  <script src="exsurge.min.js"></script>
+  <script src="util.js"></script>
+  <script src="propers.js"></script>
+  <style>
+    .test-container { padding: 20px; }
+    .test-preview { border: 1px solid #ccc; padding: 10px; margin-top: 10px; min-height: 200px; }
+    button { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Teste de Renderização - Prophetia III</h1>
+    
+    <div>
+      <button onclick="testLoadProphetia()">Carregar Prophetia III</button>
+      <button onclick="testDirectRender()">Renderização Direta</button>
+    </div>
+    
+    <div>
+      <h3>Textarea GABC:</h3>
+      <textarea id="txtTest" rows="10" style="width: 100%; font-family: monospace;"></textarea>
+    </div>
+    
+    <div>
+      <h3>Preview:</h3>
+      <div id="test-preview" class="test-preview"></div>
+    </div>
+    
+    <div>
+      <h3>Log:</h3>
+      <pre id="log" style="background: #f0f0f0; padding: 10px; max-height: 400px; overflow: auto;"></pre>
+    </div>
+  </div>
+  
+  <script>
+    var log = function(msg) {
+      console.log(msg);
+      $('#log').append(new Date().toISOString() + ' - ' + msg + '\n');
+    };
+    
+    function testLoadProphetia() {
+      log('=== Iniciando teste loadProphetia ===');
+      $('#test-preview').empty();
+      $('#log').empty();
+      
+      // Chamar a função loadProphetia
+      loadProphetia('III');
+    }
+    
+    function testDirectRender() {
+      log('=== Iniciando renderização direta ===');
+      $('#test-preview').empty();
+      $('#log').empty();
+      
+      // GABC direto da Prophetia III
+      var gabcData = `name: PROPHETIA III;
+office-part: PROPHETIA III;
+mode: 1;
+book: Prophetiarium Xicatunense;
+centering-scheme: latin;
+%%
+(c4) In(dewf) di-(gf) é-(ef)bus(gxghg)(hih) il-(hg) lis:(f.d. :') T en(h)tá(h)vit(h) De(h)us(g) A(i)bra(i)ham,(h.) et(f) di(h)xit(g) ad(g) e(g)um:(h.) (;) A(h)bra(h)ham,(h) A(g)bra(g)ham.(g.) (:) At(f) il(h)le(g) re(g)spón(g)dit:(h.) (;) Ad(g)sum.(g.)`;
+      
+      $('#txtTest').val(gabcData);
+      
+      // Configurar contexto
+      if (typeof exsurge === 'undefined') {
+        log('ERRO: Exsurge não está carregado!');
+        return;
+      }
+      
+      log('Exsurge carregado: ' + exsurge.version);
+      
+      // Criar contexto
+      var ctxt = makeExsurgeChantContext();
+      log('Contexto criado: ' + ctxt);
+      
+      // Criar mappings
+      var mappings = exsurge.Gabc.createMappingsFromSource(ctxt, gabcData);
+      log('Mappings criados: ' + mappings.length);
+      
+      // Criar score
+      var score = new exsurge.ChantScore(ctxt, mappings, true);
+      log('Score criado');
+      
+      // Layout
+      score.layout();
+      log('Layout completado');
+      
+      // Renderizar SVG
+      var svg = score.getSvg();
+      $('#test-preview').append(svg);
+      log('SVG renderizado no preview');
+    }
+    
+    // Log inicial
+    log('Página carregada');
+    log('jQuery: ' + ($ ? 'carregado' : 'NÃO carregado'));
+    log('Exsurge: ' + (typeof exsurge !== 'undefined' ? 'carregado v' + exsurge.version : 'NÃO carregado'));
+    log('makeExsurgeChantContext: ' + (typeof makeExsurgeChantContext !== 'undefined' ? 'disponível' : 'NÃO disponível'));
+    log('updateExsurge: ' + (typeof updateExsurge !== 'undefined' ? 'disponível' : 'NÃO disponível'));
+  </script>
+</body>
+</html>

@@ -133,10 +133,11 @@
     <label for="btnCalendar">Calendar:&nbsp;<button id='btnCalendar' class='btn btn-default active' value='traditional' type='button'>Traditional</button></label>
     <div><button class="hidden btn btn-danger" style="margin: 6px 0" id="btnClearSelections"><span class='glyphicon glyphicon-remove'></span> Clear Selections</button></div>
     
-    <!-- Novo Dropdown Prophetia -->
-    <div style="margin-bottom: 5px;">
-      <select id="selProphetia" class="small-screen" style="margin-bottom: 5px; font-weight: bold;">
-        <option value="">Prophetia...</option>
+    <!-- Dropdown PROPHETIAS PRE-55 (acima dos Propers of the Time) -->
+    <div style="margin-bottom: 8px;">
+      <label style="font-weight: bold; font-size: 0.85em; letter-spacing: 0.04em; display: block; margin-bottom: 3px; color: #555;">PROPHETIAS PRE-55</label>
+      <select id="selProphetia" class="small-screen" style="font-weight: bold;">
+        <option value="">— Select a Prophetia —</option>
         <option value="I">Prophetia I</option>
         <option value="II">Prophetia II</option>
         <option value="III">Prophetia III</option>
@@ -151,6 +152,7 @@
         <option value="XII">Prophetia XII</option>
       </select>
     </div>
+    <hr style="margin: 6px 0 8px 0; border-color: #ddd;">
 
     <div><select id="selSunday" class="small-screen"></select></div>
     <div><select id="selSundayNovus" class="small-screen" style='display:none'></select></div>
@@ -716,10 +718,10 @@
         if (!gabc) return;
         
         try {
-          var ctxt = new exsurge.ChantContext(exsurge.TextSpace.Default); // Use exsurge globally
-          // A minimal valid score mapping
-          var mapping = new exsurge.Gabc.createMappingFromSource(ctxt, gabc);
-          var score = new exsurge.ChantScore(ctxt, mapping, true);
+          var ctxt = typeof makeExsurgeChantContext === 'function' ? makeExsurgeChantContext() : new exsurge.ChantContext();
+          // Fixed: Exsurge uses createMappingsFromSource (plural)
+          var mappings = exsurge.Gabc.createMappingsFromSource(ctxt, gabc);
+          var score = new exsurge.ChantScore(ctxt, mappings, true);
           var container = document.getElementById('prophetia-preview');
           while (container.firstChild) container.removeChild(container.firstChild);
 

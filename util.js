@@ -112,7 +112,7 @@ function makeExsurgeChantContext() {
   ctxt.textStyles.annotation.size = 12.8;
   ctxt.minLyricWordSpacing *= 0.7;
   ctxt.accidentalSpaceMultiplier = 1.5;
-  
+
   ctxt.specialCharProperties['font-family'] = "'Versiculum'";
   ctxt.specialCharProperties['font-variant'] = 'normal';
   // ctxt.specialCharProperties['font-size'] = (ctxt.lyricTextSize) + 'px';
@@ -122,6 +122,9 @@ function makeExsurgeChantContext() {
   ctxt.setRubricColor('#d00');
   return ctxt;
 }
+
+// Exportar para window para uso em testes
+window.makeExsurgeChantContext = makeExsurgeChantContext;
 
 if(typeof HTMLTextAreaElement=='function') {
 HTMLTextAreaElement.prototype.selectAndScroll = function(start,end,onlyUp) {

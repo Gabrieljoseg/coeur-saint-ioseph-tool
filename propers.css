@@ -369,4 +369,8 @@ syl.bold {
   div[part].showing-chant.page-break-before:not(.first-showing-chant) .chant-preview {
     page-break-before: always;
   }
-}
+}  
+/* Playback controls */  
+.playback-controls { margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 5px; border: 1px solid #ddd; }  
+.playback-controls button { margin-right: 10px; }  
+.note-highlight { fill: #ff6600 !important; stroke: #ff6600 !important; stroke-width: 2px !important; filter: drop-shadow(0 0 3px #ff6600); } 
