@@ -1,5 +1,11 @@
 # Editor GABC
 
+## Estado das prophetias (Xicatunense)
+
+Só **PROPHETIA I, II e III** têm corpo musical preenchido em `PROPHETIA_*.gabc`. **IV a XII** estão **pendentes** — ver [`PENDENTE_IV_A_XII.md`](./PENDENTE_IV_A_XII.md).
+
+---
+
 Editor básico para criar e modificar arquivos GABC (Gregorio ASCII) para canto gregoriano.
 
 ## Descrição
